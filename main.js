@@ -8,6 +8,10 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const fsPromises = require('node:fs/promises');
+const EventEmitter = require('node:events');
+const os = require('node:os');
+const zlib = require('node:zlib');
+const stream = require('node:stream');
 
 
 // 1. Write a function that logs the current file path and directory.
@@ -135,3 +139,171 @@ console.log("11. Create a folder synchronously:");
 createFolderSync('./users');
 console.log('====================');
 
+// 12. Create an event emitter that listens for a "start" event and logs a welcome message.
+const eventEmitter = new EventEmitter(); // create an instance of eventEmitter class
+
+eventEmitter.on('start', () => {
+    console.log('Welcome: Start event has been triggered!');
+});
+
+console.log("12. Listen for a start event:");
+eventEmitter.emit('start');
+console.log('====================');
+
+// 13. Emit a custom "login" event with a username parameter.
+eventEmitter.on('login', (username) => {
+    console.log(`User logged in: ${username}`);
+});
+
+console.log("13. Emit a custom login event:");
+eventEmitter.emit('login', 'Ahmed'); 
+console.log('====================');
+
+// 14. Read a file synchronously and log its contents.
+function readFileSync(filePath) {
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        console.log(`The file content: “${content}”`);
+    } catch (err) {
+        console.log(`Error reading file: ${err.message}`);
+    }
+}
+
+console.log("14. Read a file synchronously:");
+readFileSync("./notes.txt");
+console.log('====================');
+
+// 15. Write asynchronously to a file.
+async function writeFileAsync(filePath, content) {
+    try {
+        await fsPromises.writeFile(filePath, content, {flag: 'a'}, 'utf8'); // flag 'a' is for appending content rother than overwriting
+        console.log("15. Write asynchronously to a file:");
+        console.log(`Successfully wrote to ${filePath}`);
+    } catch (err) {
+        console.log("15. Write asynchronously to a file:");
+        console.log(`Error writing file: ${err.message}`);
+    }
+    console.log('====================');
+}
+
+writeFileAsync("./async.txt", "Async save\n");
+
+// 16. Check if a directory exists.
+function checkDirectoryExists(dirPath) {
+    return fs.existsSync(dirPath);
+}
+
+console.log("16. Check if a directory exists:");
+console.log(checkDirectoryExists("./notes.txt"));
+console.log('====================');
+
+// 17. Write a function that returns the OS platform and CPU architecture.
+function getSystemInfo() {
+    return { // return the output in Object form for readability
+        Platform: os.platform(),
+        Arch: os.arch()
+    };
+}
+
+console.log("17. Get OS platform and CPU architecture:");
+console.log(getSystemInfo());
+console.log('====================');
+
+// 18. Use a readable stream to read a file in chunks and log each chunk.
+function readFileStream(filePath) {
+    // 1. creating the read stream using createReadStream method from fs module
+    const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
+    // an optional counter just for counting the chunks
+    let count = 0;
+    // 2. listening to "data" event when emitted
+    // it emits every time a chunk is found for read
+    readStream.on('data', (chunk) => { 
+        console.log("18. Read file in chunks using readable stream:");
+        count++;
+        console.log(`--- CHUNK ${count} START ---`);
+        console.log(chunk); // log the read data to console. or use it here
+        console.log(`--- CHUNK ${count} END ---`);
+        console.log('====================');
+
+    });
+
+
+    // 4. the on.error logic goes here
+    readStream.on('error', (err) => {
+        console.log("18. Read file in chunks using readable stream:");
+        console.log(`ReadFileStream (18) error: ${err.message}`);
+        console.log('====================');
+    });
+}
+
+readFileStream("./big.txt");
+
+// 19. Use readable and writable streams to copy content from one file to another.
+function copyFileStream(sourcePath, destPath) {
+    // 1. create the read and write streams    
+    const readStream = fs.createReadStream(sourcePath); // the read stream
+    const writeStream = fs.createWriteStream(destPath); // the write stream
+
+    let chunkCount = 0; // Initialize chunk counter
+    // Count each chunk as it flows from the read stream
+    readStream.on('data', (chunk) => {
+        chunkCount++;
+    });
+
+
+    // 2. connect both streams together
+    // .pipe() is a built-in Node.js method that connects a Readable stream to a Writable stream
+    // it take the writestream as an argument
+    readStream.pipe(writeStream); 
+
+    // 3. when the stream is finish. on.finish 
+    // the finish/end logic goes here
+    writeStream.on('finish', () => {
+        console.log("19. Copy file using streams:");
+        console.log(`File copied using streams. Total chunks copied: ${chunkCount}`);
+        console.log('====================');
+    });
+
+    // 4. if error in reading, the error logic goes here
+    readStream.on('error', (err) => {
+        console.log("19. Copy file using streams:");
+        console.log(`Read error copyFileStream(19): ${err.message}`);
+    });
+
+    // 5. if error in writing, the error logic goes here
+    writeStream.on('error', (err) => {
+        console.log("19. Copy file using streams:");
+        console.log(`Writing error copyFileStream(19): ${err.message} `);
+    })
+}
+
+copyFileStream("./source.txt", "./dest.txt");
+
+// 20. Create a pipeline that reads a file, compresses it, and writes it to another file.
+function compressFilePipeline(sourcePath, destPath) {
+    // 1. create the streams (read, write, and Gzip that compress the file).
+    const readStream = fs.createReadStream(sourcePath);
+    const gzipStream = zlib.createGzip();
+    const writeStream = fs.createWriteStream(destPath);
+
+    // 2. connect the streasm using stream.pipeline() method
+    // it is a built in method inside the stream modules
+    // that connects read, write, and gzip streams together for compressin a file
+    // and writing it to another file
+    // it takes the below argumets
+    // (1) => readstream
+    // (2) => gzipstream
+    // (3) => write stream
+    // (4) => callback function to handle the pipeline logic with an err param
+    stream.pipeline(readStream, gzipStream, writeStream, (err) => {
+        console.log("20. Compress file using pipeline:");
+        if (err) {
+            console.log(`Pipeline failed: ${err.message}`);
+        } else {
+            console.log(`File compressed successfully to ${destPath}`);
+        }
+        console.log('====================');
+    });
+}
+
+compressFilePipeline("./data.txt", "./data.txt.gz");
