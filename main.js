@@ -1,10 +1,13 @@
 /**
- * Part 1: Node.js Core Modules
+ * This (main.js) contains only Part 1 of the assignment => Node.js Core Modules
  * Part 2 will be in a separate file named "crud.js"
  */
 
 
+// importing the the necessary node core modules from node.js core modules
 const path = require('node:path');
+const fs = require('node:fs');
+
 
 // 1. Write a function that logs the current file path and directory.
 function logFilePathAndDirectory() {
@@ -73,8 +76,8 @@ console.log('====================');
 // 7. Write a function that joins multiple segments
 // Input: "src", "components", "App.js"
 // Output Example: src/components/App.js
-function joinPathSegments(...segments) {// path.join() joins multiple path segments into a single path
-    return path.join(...segments);
+function joinPathSegments(...segments) { 
+    return path.join(...segments); // path.join() joins multiple path segments into a single path
 }
 
 console.log("7. Join path segments:");
@@ -82,11 +85,42 @@ console.log(joinPathSegments("src", "components", "App.js")); // prints 'src/com
 console.log('====================');
 
 // 8. Write a function that resolves a relative path to an absolute one.
-let resolveRelativePath = (relativePath) => {
+function resolveRelativePath(relativePath) {
     return path.resolve(relativePath); // path.resolve() resolves a relative path to an absolute one
 }
 console.log("8. Resolve a relative path to an absolute one:");
 console.log(resolveRelativePath("./main.js")); // prints the absolute path of the current file (main.js)
 console.log('====================');
 
+// 9. Write a function that joins two paths.
+function joinTwoPaths(path1, path2) {
+    return path.join(path1, path2);
+}
+console.log("9. Join two paths:");
+console.log(joinTwoPaths("/folder1", "folder2/file.txt")); // prints '/folder1/folder2/file.txt'
+console.log('====================');
+
+// 10. Write a function that deletes a file asynchronously.
+function deleteFileAsync(filePath) {
+
+    fs.unlink(filePath, (err) => {
+        if (err) {
+            console.error(err.message);
+            return;
+        }
+
+        console.log(`File: ${filePath} is successfully deleted.`)
+    });
+}
+
+async function deleteFile() { // async call for deleteFileAsync
+   await deleteFileAsync("./abc.text");
+}
+
+console.log("10. A function that deletes a file asynchronously:");
+deleteFile();
+console.log('====================');
+
+
+// 11. Write a function that creates a folder synchronously.
 
