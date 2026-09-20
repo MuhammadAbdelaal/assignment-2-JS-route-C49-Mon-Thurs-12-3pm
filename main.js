@@ -7,6 +7,7 @@
 // importing the the necessary node core modules from node.js core modules
 const path = require('node:path');
 const fs = require('node:fs');
+const fsPromises = require('node:fs/promises');
 
 
 // 1. Write a function that logs the current file path and directory.
@@ -101,26 +102,36 @@ console.log(joinTwoPaths("/folder1", "folder2/file.txt")); // prints '/folder1/f
 console.log('====================');
 
 // 10. Write a function that deletes a file asynchronously.
-function deleteFileAsync(filePath) {
-
-    fs.unlink(filePath, (err) => {
-        if (err) {
-            console.error(err.message);
-            return;
-        }
-
-        console.log(`File: ${filePath} is successfully deleted.`)
-    });
+async function deleteFileAsync(filePath) {
+    try {
+        await fsPromises.unlink(filePath);
+        console.log("10. A function that deletes a file asynchronously:");
+        console.log(`The file: ${path.basename(filePath)} is successfully deleted.`);
+    } catch(err) {
+        console.log("10. A function that deletes a file asynchronously:");
+        console.log(err.message);
+    }
+    console.log('====================');
 }
-
-async function deleteFile() { // async call for deleteFileAsync
-   await deleteFileAsync("./abc.text");
-}
-
-console.log("10. A function that deletes a file asynchronously:");
-deleteFile();
-console.log('====================');
-
+    
+deleteFileAsync("./abc.txt");
+    
 
 // 11. Write a function that creates a folder synchronously.
+function createFolderSync (folderPath) {
+    // 1. check if the folder already exist
+    if (fs.existsSync(folderPath)) {
+        // 2. if exists? return, and log, folder already exits
+        console.log(`Folder '${folderPath}' already exists.`)
+        return;
+    }
+    // 3. if not, use fs module to create the folder,
+    fs.mkdirSync(folderPath);
+    // 4. return, folderpath successfully created
+    console.log(`Folder '${folderPath}' created successfully.`);
+}
+
+console.log("11. Create a folder synchronously:");
+createFolderSync('./users');
+console.log('====================');
 
